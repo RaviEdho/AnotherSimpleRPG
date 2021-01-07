@@ -12,28 +12,48 @@ import java.util.Random;
  */
 public class Character {
     String name;
-    int hp, maxhp, hpregen;
-    // int mana, manaregen;
+    int hp, hpmax, hpregen;
+    int mana, manamax, manaregen;
     int damage;
     int level;
     int exp;
     int expnext;
     int element;
-    int money;
+    String[] elementname = {"Non-elemental", "Fire", "Water", "Earth", "Wind"};
+    // int money;
     double acc;
     double dodge;
     boolean alive;
     Random rng;
     
-    public Character(String nm, int inhp, int dmg, double accu, double ddg) {
+    // INITIALIZE PLAYER CHARACTER
+    public Character(String nm, int inhp, int dmg, double accu, double ddg, int el) {
         name = nm;
-        maxhp = inhp;
-        hp = maxhp;
+        hpmax = inhp;
+        hp = hpmax;
         damage = dmg;
         acc = accu;
         dodge = ddg;
         alive = true;
         rng = new Random();
+        element = el;
+        level = 1;
+        exp = 0;
+        expnext = 100;
+    }
+    
+    // CREATE A NEW ENEMY
+    public Character(String nm, int inhp, int dmg, double accu, double ddg, int el, int lv) {
+        name = nm;
+        hpmax = inhp;
+        hp = hpmax;
+        damage = dmg;
+        acc = accu;
+        dodge = ddg;
+        alive = true;
+        rng = new Random();
+        element = el;
+        level = lv;
     }
     
     public void Attack(Character attacker, Character defender) {
@@ -56,11 +76,9 @@ public class Character {
         } else {
             defender.hp = 0;
         }
-        System.out.println(attacker.name + " dealt " + attacker.damage + " damage to " + defender.name + ". " + defender.name + "'s HP: " + defender.hp + "/" + defender.maxhp);
+        System.out.println(attacker.name + " dealt " + attacker.damage + " damage to " + defender.name + ". " + defender.name + "'s HP: " + defender.hp + "/" + defender.hpmax);
         if (defender.hp <= 0) {
-            defender.Dead(defender);
-        } else if (defender.hpregen != 0) {
-            defender.Heal(defender);
+            defender.Dead(attacker, defender);
         }
     }
     
@@ -72,13 +90,43 @@ public class Character {
         System.out.println(defender.name + " has dodged " + attacker.name + "'s attack.");
     }
     
-    public void Heal(Character character) {
-        character.hp += character.hpregen;
-        System.out.println(character.name + " has healed " + character.hpregen + " HP." + character.name + "'s HP: " + character.hp + "/" + character.maxhp);
+    public void StartTurn(Character target) {
+        if (target.hpregen < 0) {
+            Wound(target);
+        }
     }
     
-    public void Dead(Character character) {
-        character.alive = false;
-        System.out.println(character.name + " has died.");
+    public void EndTurn(Character target) {
+        if (target.hpregen > 0) {
+            Heal(target);
+        }
+    }
+    
+    public void Heal(Character target) {
+        if (target.hp + target.hpregen > target.hpmax) {
+            target.hp = target.hpmax;
+        } else {
+            target.hp += target.hpregen;
+        }
+        System.out.println(target.name + " has healed " + target.hpregen + " HP. " + target.name + "'s HP: " + target.hp + "/" + target.hpmax);
+    }
+    
+    public void Wound(Character target) {
+        target.hp += target.hpregen;
+        System.out.println(target.name + " has suffered " + target.hpregen + " damage. " + target.name + "'s HP: " + target.hp + "/" + target.hpmax);
+    }
+    
+    public void Dead(Character winner, Character loser) {
+        loser.alive = false;
+        System.out.println(loser.name + " has died.");
+    }
+    
+    public void GainXP(Character target, Character input) {
+        target.exp += (int) (input.level * 10 * 1.01);
+    }
+    
+    public void LevelUP(Character target) {
+        int temp = target.expnext;
+        target.expnext = (int) (temp * 1.02 + 50);
     }
 }
